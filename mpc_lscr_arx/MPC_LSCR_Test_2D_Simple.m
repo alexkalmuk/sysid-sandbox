@@ -13,7 +13,7 @@ x0 = ones(1,2) * 7;
 T = 100;
 % Time instants of kind k * T_recalc when a new set is calculated using
 % LCSR_ARX
-T_recalc = 10;
+T_recalc = 20;
 
 % Epsilon-set dimenstions. That is if the set of pissible parameters is
 % rectangle with size a, b than precision is a / N, b / N.
