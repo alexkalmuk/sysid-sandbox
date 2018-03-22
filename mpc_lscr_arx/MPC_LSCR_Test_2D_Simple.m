@@ -13,7 +13,7 @@ x0 = ones(1,2) * 7;
 T = 100;
 % Time instants of kind k * T_recalc when a new set is calculated using
 % LCSR_ARX
-T_recalc = 20;
+T_recalc = 10;
 
 % Epsilon-set dimenstions. That is if the set of pissible parameters is
 % rectangle with size a, b than precision is a / N, b / N.
@@ -128,9 +128,12 @@ for iter=1:iterations
     xlabel('theta0 (= b1)');
     ylabel('theta1 (= b2 - a1 * b1)');
     figure(5);
+    hold on;
     pcolor(theta, theta, result_ab);
+    plot(a1, b1, 'ro', 'MarkerSize', 5, 'MarkerFaceColor', 'red');
     xlabel('a1');
     ylabel('b1');
+    hold off;
     %pcolor(theta, theta, result3);
     %%%%%%%%%%%%%%%%%%% LSCR step end %%%%%%%%%%%%%%%%%%%
     
