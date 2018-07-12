@@ -66,22 +66,7 @@ function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t
 
     x_cur = x_all(:,t0)';
 
-    % Calculate current u_t = u(1) under horizon N_mpc
-    cvx_begin quiet
-        variables c u(N)
-        %expression x0(1,2);
-        expression res(1,S);
-        %x0 = x_cur_mcp;
-        minimize ( c )
-        subject to
-            MPCCostFunc(u,A_mpc,B_mpc,W_mpc,x_cur,N,S) <= c;
-            for j=1:N
-                C_u(1) <= u(j) <= C_u(2);
-            end
-    cvx_end
-
-    % Save obtained u(1)
-    v = u(1);
+    v = solve_rmpc_cop(A_mpc,B_mpc,W_mpc,C_u,x_cur,N,S);
 
     % Calculate next x_cur=x_{t+1} using obtained u(1)
     z = A * x_cur' + B' * v + W(i, :)';
