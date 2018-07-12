@@ -11,8 +11,8 @@ b2 = 1.6;
 T = 100;
 % Initial state
 y = zeros(1,T);
-y(1) = 30;
-y(2) = 20;
+y(1) = 8;
+y(2) = 7;
 % Time instants of kind k * T_recalc when a new set is calculated using
 % LCSR_ARX
 T_recalc = 10;
@@ -29,6 +29,8 @@ Omega_AB = {[0 2; 0 2], N, ones(N, N)};
 Omega_W = [0 5];
 % C_u are constraints for the control u -- interval
 C_u = [-10 10];
+% C_x are constraints for the state. Here it is supposed
+C_y = [-8 8];
 
 % Noise is unknown but bounded and located within [Omega(3,1), Omega(3,2)]
 mu = 2;
@@ -72,10 +74,10 @@ D = 15 * D;
 v_mpc = ones(1,1);
 
 % Do three steps to derive initial value of x0
-y(3) = -a1*y(2) - a2*y(1) + b1*1 + b2*1 + w(3);
+y(3) = -a1*y(2) - a2*y(1) + b1*6 + b2*6 + w(3);
 x0 = ones(1,2);
 x0(1) = y(2);
-x0(2) = y(3) + a1*y(2) - b1*1;
+x0(2) = y(3) + a1*y(2) - b1*6;
 
 x = zeros(2, 2);
 x(:, 2) = x0';
@@ -83,7 +85,7 @@ x(:, 2) = x0';
 for t=2:T
     %%%%%%%%%%%%%%%%%%% MPC step start %%%%%%%%%%%%%%%%%%%
 
-    [v_mpc, x] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+    [v_mpc, x] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
     
     figure(1);
     hold on;
