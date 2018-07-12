@@ -27,7 +27,7 @@ function result = LSCR_ARX(T, N, M, y, u, w, D, s, r, l, theta0, theta1, dim)
                     y_estim(t,i,j) = u(t+1) * (2*i/N) + u(t) * (2*j/N);
                     z_estim = D(t+1) * (2*i/N) + D(t) * (2*j/N);
                 end
-                e(t,i,j) = (y(r*t+l,i,j) - y_estim(t,i,j)) - (getZ(D(t+1), D(t), w(t)) - z_estim);
+                e(t,i,j) = (y(r*t+l) - y_estim(t,i,j)) - (getZ(D(t+1), D(t), w(t)) - z_estim);
                 f(t,i,j) = sign((D(t+1-s) + u(t+1-s)) * e(t,i,j));
             end
         end
