@@ -1,6 +1,6 @@
 function result = MPCCostFunc(u,A_arr,B_arr,W_arr,x0,N,M)
     res(1:M) = cvx(zeros(1,M));
-    x = x0;
+
     for i=1:M % scenarios
         % Get i'th scenario
         %A = A_arr(:,:,i);
@@ -12,6 +12,8 @@ function result = MPCCostFunc(u,A_arr,B_arr,W_arr,x0,N,M)
         B = [0.6 1.6];
 
         W = W_arr(:,:,i);
+
+        x = x0;
 
         for j=1:N % horison
             % We use x(1)^2 instead of sum(x.^2) because we are interested
