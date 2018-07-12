@@ -11,19 +11,15 @@
 %   N - MPC prediction horizon
 %   M - scenarios count for Scenario Approach
 %   t0 - start time instant
-%   T - final time instant 
 %
 % Return: Array of contols - v, and the last state x_final.
-function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0, T_final)
+function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0)
     A = [-C(1)   1;
          -C(2)   0];
 
     B = [C(3) C(4)];
     
     W = w' * [-C(1) -C(2)];
-    
-    % The time interval from the start to the end
-    T = T_final - t0 + 1;
     
     % Selected scenarios for parameters in A and B
     % They are randomly chosen values from the set Omega_AB{3},
@@ -48,16 +44,13 @@ function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t
            scen_B(found) = scen_b;
         end
     end
-    
+
     % Selected scenarios for noise
     scen_W = zeros(1,N,S);
     for i=1:S
         scen_W(:,:,i) = Omega_W(1) + (Omega_W(2) - Omega_W(1)).*rand(1, N);
     end
     
-    disp(scen_A);
-    disp(scen_B);
-
     % Generate A and B under uncertainties
     A_mpc = zeros(2,2,S);
     B_mpc = zeros(1,2,S);
@@ -70,52 +63,44 @@ function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t
         A_mpc(:,:,i) = A_tmp;
         B_mpc(:,:,i) = B_tmp;
     end
-    
-    v = zeros(1,T);
-    x = zeros(2,T+1);
+
     x_cur = x_all(:,t0)';
 
-    for i=1:T
-        x(:,i) = x_cur';
-        
-        % Calculate current u_t = u(1) under horizon N_mpc
-        cvx_begin quiet
-            variables c u(N)
-            %expression x0(1,2);
-            expression res(1,S);
-            %x0 = x_cur_mcp;
-            minimize ( c )
-            subject to
-                MPCCostFunc(u,A_mpc,B_mpc,W_mpc,x_cur,N,S) <= c;
-                for j=1:N
-                    C_u(1) <= u(j) <= C_u(2);
-                end
-        cvx_end
+    % Calculate current u_t = u(1) under horizon N_mpc
+    cvx_begin quiet
+        variables c u(N)
+        %expression x0(1,2);
+        expression res(1,S);
+        %x0 = x_cur_mcp;
+        minimize ( c )
+        subject to
+            MPCCostFunc(u,A_mpc,B_mpc,W_mpc,x_cur,N,S) <= c;
+            for j=1:N
+                C_u(1) <= u(j) <= C_u(2);
+            end
+    cvx_end
 
-        % Save obtained u(1)
-        v(i) = u(1);
+    % Save obtained u(1)
+    v = u(1);
 
-        % Calculate next x_cur=x_{t+1} using obtained u(1)
-        z = A * x_cur' + B' * u(1) + W(i, :)';
-        x_cur = z';
-        
-        figure(2);
-        
-        subplot(2,1,1);
-        plot(1:(t0+i-1), horzcat(v_all, v(1:i)));
-        xlabel('Time (T)');
-        ylabel('Control (v_t)');
-        
-        subplot(2,1,2);
-        plot(1:(t0+i), horzcat(x_all(1,1:t0), x(1,1:i)));
-        xlabel('Time (T)');
-        ylabel('State (y_t)');
-        
-        pause(0.01)
-    end
-    
+    % Calculate next x_cur=x_{t+1} using obtained u(1)
+    z = A * x_cur' + B' * v + W(i, :)';
+    x_cur = z';
+
+    figure(2);
+    hold on;
+
+    subplot(2,1,1);
+    plot(1:(t0), horzcat(v_all, v));
+    xlabel('Time (T)');
+    ylabel('Control (v_t)');
+
+    subplot(2,1,2);
+    plot(1:(t0+1), horzcat(x_all(1,1:t0), x_cur(1)));
+    xlabel('Time (T)');
+    ylabel('Approximated (x_t(1))');
     hold off;
     
     v = horzcat(v_all, v);
-    x_final = horzcat(x_all, x);
+    x_final = horzcat(x_all, x_cur');
 end
