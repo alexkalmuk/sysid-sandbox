@@ -76,12 +76,12 @@ function [v, x_final] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N,
     hold on;
 
     subplot(2,1,1);
-    plot(1:(t0), horzcat(v_all, v));
+    plot(1:(t0), horzcat(v_all, v), 'Color', 'blue');
     xlabel('Time (T)');
     ylabel('Control (v_t)');
 
     subplot(2,1,2);
-    plot(1:(t0+1), horzcat(x_all(1,1:t0), x_cur(1)));
+    plot(1:t0, x_all(1,1:t0), 'Color', 'blue');
     xlabel('Time (T)');
     ylabel('Approximated (x_t(1))');
     hold off;

@@ -89,20 +89,17 @@ for t=2:T
     
     figure(1);
     hold on;
-    
-    plot(1:1:t, v_mpc); hold on;
-    plot(1:1:t, v_mpc + D(1,1:t));
+    plot(1:1:t, v_mpc, 'Color', 'blue'); hold on;
+    plot(1:1:t, v_mpc + D(1,1:t), 'Color', 'red');
     ylabel('v_t (blue), \Delta_t (red)');
     xlabel('Time (T)');
-    pause(0.01);
     hold off;
     
     figure(5);
     hold on;
-    plot(1:1:t, y(1,1:t));
+    plot(1:1:t, y(1,1:t), 'Color', 'blue');
     ylabel('State y_t');
     xlabel('Time (T)');
-    pause(0.01);
     hold off;
 
     %%%%%%%%%%%%%%%%%%% MPC step end %%%%%%%%%%%%%%%%%%%
@@ -146,19 +143,20 @@ for t=2:T
         figure(3);
         hold on;
         pcolor(theta, theta, result_common);
+        plot(theta0, theta1, 'r*');
         xlabel('theta0 (= b0)');
         ylabel('theta1 (= b1 - a0 * b0)');
-        plot(theta0, theta1, 'r*');
-        pause(0.01);
         hold off;
         
         figure(4);
         hold on;
         pcolor(theta, theta, result_ab);
-        xlabel('a0');
-        ylabel('b0');
-        pause(0.01);
+        plot(a1, b1, 'r*');
+        xlabel('a1');
+        ylabel('b1');
         hold off;
         %%%%%%%%%%%%%%%%%%% LSCR step end %%%%%%%%%%%%%%%%%%%
     end
+
+    drawnow
 end
