@@ -17,11 +17,8 @@ cvx_begin quiet
         end
         % State constraints
         for j=1:S
-            %A = A_scen(:,:,j);
-            %B = B_scen(:,:,j);
-            A = [-1.4 1;
-                 -1   0];
-            B = [0.6 1.6];
+            A = A_scen(:,:,j);
+            B = B_scen(:,:,j);
             W = W_scen(:,:,j);
             for i=1:N
                 x = cvx(A * x_cur') + B' * u(1) + [W(i) W(i)]';

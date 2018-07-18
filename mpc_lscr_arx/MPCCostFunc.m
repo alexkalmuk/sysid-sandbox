@@ -3,14 +3,8 @@ function result = MPCCostFunc(u,A_arr,B_arr,W_arr,x0,N,M)
 
     for i=1:M % scenarios
         % Get i'th scenario
-        %A = A_arr(:,:,i);
-        %B = B_arr(:,:,i);
-        % FIXME Remove that hardcoded values and change back to the
-        % presented above
-        A = [-1.4 1;
-             -1   0];
-        B = [0.6 1.6];
-
+        A = A_arr(:,:,i);
+        B = B_arr(:,:,i);
         W = W_arr(:,:,i);
 
         x = x0;
