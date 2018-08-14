@@ -2,6 +2,8 @@
 % MPC + LSCR for ARX models
 %
 
+addpath('cop/');
+
 %%%%% System setup. a1 and b1 are unknown. %%%%%
 a1 = 1.4;
 a2 = 1;
