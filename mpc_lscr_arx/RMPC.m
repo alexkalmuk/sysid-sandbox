@@ -13,7 +13,7 @@
 %   t0 - start time instant
 %
 % Return: Array of contols - v, and the last state x_final.
-function [v, x_final] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0)
+function [v, x_final, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0)
     A = [-C(1)   1;
          -C(2)   0];
 
@@ -68,6 +68,15 @@ function [v, x_final] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N,
 
     v = solve_rmpc_cop(A_mpc,B_mpc,W_mpc,C_u,C_y,x_cur,N,S);
 
+    if isnan(v)
+        fprintf(['Error: Convex Optimization Problem cannot be solved!\n',...
+                '    Try to increase y_t constraints C_y\n']);
+        v = v_all;
+        x_final = x_all;
+        res = -1; % Error
+        return;
+    end
+
     % Calculate next x_cur=x_{t+1} using obtained u(1)
     z = A * x_cur' + B' * v + W(i, :)';
     x_cur = z';
@@ -88,4 +97,5 @@ function [v, x_final] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N,
     
     v = horzcat(v_all, v);
     x_final = horzcat(x_all, x_cur');
+    res = 0; % Success
 end

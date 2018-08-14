@@ -94,7 +94,11 @@ x(:, 2) = x0';
 for t=2:T
     %%%%%%%%%%%%%%%%%%% MPC step start %%%%%%%%%%%%%%%%%%%
 
-    [v_mpc, x] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+    [v_mpc, x, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+    if res < 0
+        fprintf('Error: RMPC failed\n');
+        return;
+    end
     
     figure(1);
     hold on;
