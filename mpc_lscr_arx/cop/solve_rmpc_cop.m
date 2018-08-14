@@ -20,8 +20,8 @@ cvx_begin quiet
             A = A_scen(:,:,j);
             B = B_scen(:,:,j);
             W = W_scen(:,:,j);
-            x = x_cur';
             for i=1:N
+                x = x_cur';
                 for k = 1:N
                     x = cvx(A * x) + B' * u(i) + [W(k) W(k)]';
                     C_y(1) <= x(1) <= C_y(2);
