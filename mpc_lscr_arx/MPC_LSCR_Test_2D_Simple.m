@@ -32,7 +32,11 @@ Omega_W = [0 5];
 % C_u are constraints for the control u -- interval
 C_u = [-10 10];
 % C_x are constraints for the state. Here it is supposed
-C_y = [-8 8];
+C_y = [-20 20];
+% Name of solver to use
+cop_solver = 'solve_rmpc_cop2';
+
+fprintf('Solver used: %s\n', cop_solver);
 
 % Noise is unknown but bounded and located within [Omega(3,1), Omega(3,2)]
 mu = 2;
@@ -96,7 +100,8 @@ x(:, 2) = x0';
 for t=2:T
     %%%%%%%%%%%%%%%%%%% MPC step start %%%%%%%%%%%%%%%%%%%
 
-    [v_mpc, x, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+    [v_mpc, x, res] = RMPC(str2func(cop_solver), C, C_u, C_y, Omega_AB, ...
+                        Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
     if res < 0
         fprintf('Error: RMPC failed\n');
         return;

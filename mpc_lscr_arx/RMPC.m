@@ -13,7 +13,8 @@
 %   t0 - start time instant
 %
 % Return: Array of contols - v, and the last state x_final.
-function [v, x_final, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0)
+function [v, x_final, res] = RMPC(cop_solver, C, C_u, C_y, Omega_AB,...
+                            Omega_W, w, v_all, x_all, N, S, t0)
     A = [-C(1)   1;
          -C(2)   0];
 
@@ -66,7 +67,7 @@ function [v, x_final, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_al
 
     x_cur = x_all(:,t0)';
 
-    v = solve_rmpc_cop(A_mpc,B_mpc,W_mpc,C_u,C_y,x_cur,N,S);
+    v = cop_solver(A_mpc,B_mpc,W_mpc,C_u,C_y,x_cur,N,S);
 
     if isnan(v)
         fprintf(['Error: Convex Optimization Problem cannot be solved!\n',...
