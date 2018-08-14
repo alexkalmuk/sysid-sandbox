@@ -13,7 +13,7 @@
 %   t0 - start time instant
 %
 % Return: Array of contols - v, and the last state x_final.
-function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0)
+function [v, x_final, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_all, x_all, N, S, t0)
     A = [-C(1)   1;
          -C(2)   0];
 
@@ -66,22 +66,16 @@ function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t
 
     x_cur = x_all(:,t0)';
 
-    % Calculate current u_t = u(1) under horizon N_mpc
-    cvx_begin quiet
-        variables c u(N)
-        %expression x0(1,2);
-        expression res(1,S);
-        %x0 = x_cur_mcp;
-        minimize ( c )
-        subject to
-            MPCCostFunc(u,A_mpc,B_mpc,W_mpc,x_cur,N,S) <= c;
-            for j=1:N
-                C_u(1) <= u(j) <= C_u(2);
-            end
-    cvx_end
+    v = solve_rmpc_cop(A_mpc,B_mpc,W_mpc,C_u,C_y,x_cur,N,S);
 
-    % Save obtained u(1)
-    v = u(1);
+    if isnan(v)
+        fprintf(['Error: Convex Optimization Problem cannot be solved!\n',...
+                '    Try to increase y_t constraints C_y\n']);
+        v = v_all;
+        x_final = x_all;
+        res = -1; % Error
+        return;
+    end
 
     % Calculate next x_cur=x_{t+1} using obtained u(1)
     z = A * x_cur' + B' * v + W(i, :)';
@@ -91,16 +85,17 @@ function [v, x_final] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_all, x_all, N, S, t
     hold on;
 
     subplot(2,1,1);
-    plot(1:(t0), horzcat(v_all, v));
+    plot(1:(t0), horzcat(v_all, v), 'Color', 'blue');
     xlabel('Time (T)');
     ylabel('Control (v_t)');
 
     subplot(2,1,2);
-    plot(1:(t0+1), horzcat(x_all(1,1:t0), x_cur(1)));
+    plot(1:t0, x_all(1,1:t0), 'Color', 'blue');
     xlabel('Time (T)');
     ylabel('Approximated (x_t(1))');
     hold off;
     
     v = horzcat(v_all, v);
     x_final = horzcat(x_all, x_cur');
+    res = 0; % Success
 end

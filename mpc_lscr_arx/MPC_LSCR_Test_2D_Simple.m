@@ -11,8 +11,8 @@ b2 = 1.6;
 T = 100;
 % Initial state
 y = zeros(1,T);
-y(1) = 30;
-y(2) = 20;
+y(1) = 8;
+y(2) = 7;
 % Time instants of kind k * T_recalc when a new set is calculated using
 % LCSR_ARX
 T_recalc = 10;
@@ -29,6 +29,8 @@ Omega_AB = {[0 2; 0 2], N, ones(N, N)};
 Omega_W = [0 5];
 % C_u are constraints for the control u -- interval
 C_u = [-10 10];
+% C_x are constraints for the state. Here it is supposed
+C_y = [-8 8];
 
 % Noise is unknown but bounded and located within [Omega(3,1), Omega(3,2)]
 mu = 2;
@@ -44,7 +46,16 @@ M_mpc = 10; % number of scenarios
 %%%%% LSCR_ARX Setup %%%%%
 M = 100;
 r = 2;
-theta = 0:(2/N):(2-2/N);
+
+% Now calculate theta bounds
+ab_bounds = Omega_AB{1};
+theta_bounds = [ab_bounds(2,1) ab_bounds(2,2);
+                b2 - ab_bounds(1,2)*ab_bounds(2,2) ...
+                b2 - ab_bounds(1,1)*ab_bounds(2,1)];
+
+% For plotting
+[theta_x, theta_y] = get_epsilon_set(theta_bounds, N);
+[a_x, b_y] = get_epsilon_set(ab_bounds, N);
 
 %%%%% Below we do the main part - MPC + LSCR_ARX %%%%%
 C = [a1 a2 b1 b2];
@@ -72,10 +83,10 @@ D = 15 * D;
 v_mpc = ones(1,1);
 
 % Do three steps to derive initial value of x0
-y(3) = -a1*y(2) - a2*y(1) + b1*1 + b2*1 + w(3);
+y(3) = -a1*y(2) - a2*y(1) + b1*6 + b2*6 + w(3);
 x0 = ones(1,2);
 x0(1) = y(2);
-x0(2) = y(3) + a1*y(2) - b1*1;
+x0(2) = y(3) + a1*y(2) - b1*6;
 
 x = zeros(2, 2);
 x(:, 2) = x0';
@@ -83,24 +94,25 @@ x(:, 2) = x0';
 for t=2:T
     %%%%%%%%%%%%%%%%%%% MPC step start %%%%%%%%%%%%%%%%%%%
 
-    [v_mpc, x] = RMPC(C, C_u, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+    [v_mpc, x, res] = RMPC(C, C_u, C_y, Omega_AB, Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+    if res < 0
+        fprintf('Error: RMPC failed\n');
+        return;
+    end
     
     figure(1);
     hold on;
-    
-    plot(1:1:t, v_mpc); hold on;
-    plot(1:1:t, v_mpc + D(1,1:t));
+    plot(1:1:t, v_mpc, 'Color', 'blue'); hold on;
+    plot(1:1:t, v_mpc + D(1,1:t), 'Color', 'red');
     ylabel('v_t (blue), \Delta_t (red)');
     xlabel('Time (T)');
-    pause(0.01);
     hold off;
     
     figure(5);
     hold on;
-    plot(1:1:t, y(1,1:t));
+    plot(1:1:t, y(1,1:t), 'Color', 'blue');
     ylabel('State y_t');
     xlabel('Time (T)');
-    pause(0.01);
     hold off;
 
     %%%%%%%%%%%%%%%%%%% MPC step end %%%%%%%%%%%%%%%%%%%
@@ -114,49 +126,76 @@ for t=2:T
 
     x(1,t+1) = y(t+1);
 
-    if t >= 30 && mod(t, T_recalc) == 0
+    if t >= 10 && mod(t, T_recalc) == 0
         %%%%%%%%%%%%%%%%%%% LSCR step start %%%%%%%%%%%%%%%%%%%
-        result0 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,r,1,theta0,theta1,2);
-        result1 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,1,r,1,theta0,theta1,2);
+        result0 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,r,1,theta0,theta1,2,theta_bounds);
+        result1 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,1,r,1,theta0,theta1,2,theta_bounds);
 
         result_common = result0.*result1;
 
-        result3 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,r,0,theta0,theta1,1);
+        % result3 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,r,0,theta0,theta1,1,Omega_AB{1});
 
-        result_ab = zeros(N, N);
-
-        % Claculate unknown parameters a1 and b1 from theta0 and theta1
-        for i=1:N
-            for j=1:N
-                t0 = 2*i/N;
-                t1 = b2 - (2*j/N) * t0;
-                if (t1 > 0) && (t1 < 2)
-                    k = round(N*t1/2);
-                    if k > 0 && result_common(i,k) == 1
-                        result_ab(i,j) = 1;
-                    end
-                end
-            end
-        end
+        result_ab = theta_to_ab(b2, ab_bounds, theta_bounds, N, result_common);
 
         Omega_AB{3} = result_ab;
 
         figure(3);
         hold on;
-        pcolor(theta, theta, result_common);
+        pcolor(theta_x, theta_y, result_common);
+        plot(theta0, theta1, 'r*');
         xlabel('theta0 (= b0)');
         ylabel('theta1 (= b1 - a0 * b0)');
-        plot(theta0, theta1, 'r*');
-        pause(0.01);
         hold off;
         
         figure(4);
         hold on;
-        pcolor(theta, theta, result_ab);
-        xlabel('a0');
-        ylabel('b0');
-        pause(0.01);
+        pcolor(a_x, b_y, result_ab);
+        plot(a1, b1, 'r*');
+        xlabel('a1');
+        ylabel('b1');
         hold off;
         %%%%%%%%%%%%%%%%%%% LSCR step end %%%%%%%%%%%%%%%%%%%
+    end
+
+    drawnow
+end
+
+function [x, y] = get_epsilon_set(bounds, N)
+    a = bounds(1,1);
+    b = bounds(1,2);
+    c = bounds(2,1);
+    d = bounds(2,2);
+    x = a:((b-a)/N):(b-(b-a)/N);
+    y = c:((d-c)/N):(d-(d-c)/N);
+end
+
+function res_ab = theta_to_ab(b2, bounds_ab,bounds_theta,N,theta_set)
+% Calculate unknown parameters a1 and b1 from theta0 and theta1
+    res_ab = zeros(N,N);
+    a = bounds_ab(1,1);
+    b = bounds_ab(1,2);
+    c = bounds_ab(2,1);
+    d = bounds_ab(2,2);
+    a1 = bounds_theta(1,1);
+    b1 = bounds_theta(1,2);
+    c1 = bounds_theta(2,1);
+    d1 = bounds_theta(2,2);
+    for i=1:N
+        for j=1:N
+            a1_val = a + (b-a)*i/N;
+            b1_val = c + (d-c)*j/N;
+
+            t0 = b1_val;
+            t1 = b2 - a1_val * b1_val;
+
+            theta_i = round(N*(t0-a1)/(b1-a1));
+            theta_j = round(N*(t1-c1)/(d1-c1));
+
+            if (theta_i > 0) && (theta_i < N) ...
+                    && (theta_j > 0) && (theta_j < N) ...
+                    && theta_set(theta_i,theta_j) == 1
+                res_ab(i,j) = 1;
+            end
+        end
     end
 end

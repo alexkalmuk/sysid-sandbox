@@ -1,9 +1,9 @@
-function result = LSCR_ARX(T, N, M, y, u, w, D, s, r, l, theta0, theta1, dim)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INPUT
-    theta = zeros(N,N);
-    for i=1:M
-        theta(i,1:N) = 0:(2/N):(2-2/N);
-    end
+function result = LSCR_ARX(T, N, M, y, u, w, D, s, r, l, theta0, theta1, dim, bounds)
+    a = bounds(1,1);
+    b = bounds(1,2);
+    c = bounds(2,1);
+    d = bounds(2,2);
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OUTPUT
     result = zeros(N,N);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,12 +20,15 @@ function result = LSCR_ARX(T, N, M, y, u, w, D, s, r, l, theta0, theta1, dim)
     for t = 1:T
         for i = 1:N
             for j = 1:N
+                i_val = a + (b-a)*i/N;
+                j_val = c + (d-c)*j/N;
+
                 if dim == 1
-                    y_estim(t,i,j) = u(t+1) * (2*i/N);
-                    z_estim = D(t+1) * (2*i/N) + D(t);
+                    y_estim(t,i,j) = u(t+1) * i_val;
+                    z_estim = D(t+1) * i_val + D(t);
                 else
-                    y_estim(t,i,j) = u(t+1) * (2*i/N) + u(t) * (2*j/N);
-                    z_estim = D(t+1) * (2*i/N) + D(t) * (2*j/N);
+                    y_estim(t,i,j) = u(t+1) * i_val + u(t) * j_val;
+                    z_estim = D(t+1) * i_val + D(t) * j_val;
                 end
                 e(t,i,j) = (y(r*t+l) - y_estim(t,i,j)) - (getZ(D(t+1), D(t), w(t)) - z_estim);
                 f(t,i,j) = sign((D(t+1-s) + u(t+1-s)) * e(t,i,j));
