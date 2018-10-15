@@ -61,9 +61,11 @@ r = 2;
 
 % Now calculate theta bounds
 ab_bounds = Omega_AB{1};
-theta_bounds = [ab_bounds(2,1) ab_bounds(2,2);
-                b2 - ab_bounds(1,2)*ab_bounds(2,2) ...
-                b2 - ab_bounds(1,1)*ab_bounds(2,1)];
+% theta_bounds = [ab_bounds(2,1) ab_bounds(2,2);
+%                 b2 - ab_bounds(1,2)*ab_bounds(2,2) ...
+%                 b2 - ab_bounds(1,1)*ab_bounds(2,1)];
+theta_bounds = [-2 2;
+                -2 2];
 
 % For plotting
 [theta_x, theta_y] = get_epsilon_set(theta_bounds, N);
