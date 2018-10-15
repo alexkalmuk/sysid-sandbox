@@ -5,10 +5,16 @@
 addpath('cop/');
 
 %%%%% System setup. a1 and b1 are unknown. %%%%%
-a1 = 1.4;
+% a1 = 1.4;
+% a2 = 1;
+% b1 = 0.8;
+% b2 = 1.6;
+
+a1 = 0.8;
 a2 = 1;
-b1 = 0.6;
+b1 = 0.2;
 b2 = 1.6;
+
 % Time
 T = 100;
 % Initial state
