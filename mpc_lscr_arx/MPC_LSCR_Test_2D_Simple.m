@@ -4,6 +4,8 @@
 
 addpath('cop/');
 
+generate_random_control = false;
+
 %%%%% System setup. a1 and b1 are unknown. %%%%%
 % a1 = 1.4;
 % a2 = 1;
@@ -132,31 +134,35 @@ fprintf('\n');
 for t=2:T
     %%%%%%%%%%%%%%%%%%% MPC step start %%%%%%%%%%%%%%%%%%%
 
-    [v_mpc, x, res] = RMPC(str2func(cop_solver), C, C_u, C_y, Omega_AB, ...
-                        Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
-    if res < 0
-        fprintf('Error: RMPC failed\n');
-        return;
+    if generate_random_control == false
+        [v_mpc, x, res] = RMPC(str2func(cop_solver), C, C_u, C_y, Omega_AB, ...
+                            Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
+        if res < 0
+            fprintf('Error: RMPC failed\n');
+            return;
+        end
+
+        figure(1);
+        hold on;
+        plot(1:1:t, v_mpc, 'Color', 'blue'); hold on;
+        plot(1:1:t, v_mpc + D(1,1:t), 'Color', 'red');
+        ylabel('v_t (blue), \Delta_t (red)');
+        xlabel('Time (T)');
+        hold off;
+
+        figure(5);
+        hold on;
+        plot(1:1:t, y(1,1:t), 'Color', 'blue');
+        ylabel('State y_t');
+        xlabel('Time (T)');
+        hold off;
+
+        u = v_mpc;
+    else
+        u = ones(1, t) * 1;
     end
-    
-    figure(1);
-    hold on;
-    plot(1:1:t, v_mpc, 'Color', 'blue'); hold on;
-    plot(1:1:t, v_mpc + D(1,1:t), 'Color', 'red');
-    ylabel('v_t (blue), \Delta_t (red)');
-    xlabel('Time (T)');
-    hold off;
-    
-    figure(5);
-    hold on;
-    plot(1:1:t, y(1,1:t), 'Color', 'blue');
-    ylabel('State y_t');
-    xlabel('Time (T)');
-    hold off;
 
-    %%%%%%%%%%%%%%%%%%% MPC step end %%%%%%%%%%%%%%%%%%%
-
-    u = v_mpc;
+    %%%%%%%%%%%%%%%%%%% MPC step end %%%%%%%%%%%%%%%%%%%;
 
     % Measure state FIXME : t > 2
     if t > 2
@@ -167,8 +173,8 @@ for t=2:T
 
     if t >= 10 && mod(t, T_recalc) == 0
         %%%%%%%%%%%%%%%%%%% LSCR step start %%%%%%%%%%%%%%%%%%%
-        result0 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,r,1,theta0,theta1,2,theta_bounds);
-        result1 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,1,r,1,theta0,theta1,2,theta_bounds);
+        result0 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,theta0,theta1,2,theta_bounds);
+        result1 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,1,theta0,theta1,2,theta_bounds);
 
         result_common = result0.*result1;
 
