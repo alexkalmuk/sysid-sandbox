@@ -173,12 +173,16 @@ for t=2:T
 
     if t >= 10 && mod(t, T_recalc) == 0
         %%%%%%%%%%%%%%%%%%% LSCR step start %%%%%%%%%%%%%%%%%%%
-        result0 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,theta0,theta1,2,theta_bounds);
-        result1 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,1,theta0,theta1,2,theta_bounds);
+        y_new = y;
+        for i=3:t
+            y_new(i) = y(i) + a2 * y(i - 2) - b2 * u(i-2);
+        end
+        result0 = LSCR_ARX((t-2)/2,N,M,y_new,u,w,D,0,theta0,theta1,2,theta_bounds);
+        result1 = LSCR_ARX((t-2)/2,N,M,y_new,u,w,D,1,theta0,theta1,2,theta_bounds);
+        result2 = LSCR_ARX((t-2)/2,N,M,y_new,u,w,D,1,theta0,theta1,1,theta_bounds);
 
         result_common = result0.*result1;
-
-        % result3 = LSCR_ARX((t-2)/r,N,M,y,u,w,D,0,r,0,theta0,theta1,1,Omega_AB{1});
+        result_common = result_common.*result2;
 
         result_ab = theta_to_ab(b2, ab_bounds, theta_bounds, N, result_common);
 
