@@ -48,8 +48,8 @@ cop_solver = 'solve_rmpc_cop2';
 mu = 2;
 sigma = 3;
 w = normrnd(mu,sigma,[1 T]);
-w(w > Omega_W(2)) = mu;
-w(w < Omega_W(1)) = mu;
+%w(w > Omega_W(2)) = mu;
+%w(w < Omega_W(1)) = mu;
 
 %%%%% MPC setup %%%%%
 N_mpc = 8; % horizon
