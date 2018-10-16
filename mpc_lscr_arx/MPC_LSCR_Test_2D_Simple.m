@@ -192,7 +192,7 @@ for t=2:T
 
         figure(3);
         hold on;
-        pcolor(theta_x, theta_y, result_common);
+        pcolor(theta_x, theta_y, result_common');
         plot(theta0, theta1, 'r*');
         xlabel('theta0 (= b0)');
         ylabel('theta1 (= b1 - a0 * b0)');
@@ -200,7 +200,7 @@ for t=2:T
         
         figure(4);
         hold on;
-        pcolor(a_x, b_y, result_ab);
+        pcolor(a_x, b_y, result_ab');
         plot(a1, b1, 'r*');
         xlabel('a1');
         ylabel('b1');

@@ -27,11 +27,11 @@ function result = LSCR_ARX(T, N, M, y, u, w, D, s, theta0, theta1, dim, bounds)
                 if dim == 1
                     y_estim(t,i,j) = u(2*t-1) * i_val;
                     z_estim = D(2*t-1) * i_val;
-                    z = D(2*t-1) * theta1 + w(2*t);
+                    z = D(2*t-1) * theta0 + w(2*t);
                 else
                     y_estim(t,i,j) = u(2*t-1) * j_val + u(2*t) * i_val;
                     z_estim = D(2*t-1) * j_val + D(2*t) * i_val;
-                    z = D(2*t-1) * theta0 + D(2*t) * theta1;
+                    z = D(2*t-1) * theta1 + D(2*t) * theta0;
                 end
                 e(t,i,j) = (y(2*t+dim-1) - y_estim(t,i,j)) - (z - z_estim);
                 f(t,i,j) = sign((D(2*t-s) + u(2*t-s)) * e(t,i,j));
