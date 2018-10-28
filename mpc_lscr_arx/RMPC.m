@@ -71,7 +71,10 @@ function [v, x_final, res] = RMPC(cop_solver, C, C_u, C_y, Omega_AB,...
 
     if isnan(v)
         fprintf(['Error: Convex Optimization Problem cannot be solved!\n',...
-                '    Try to increase y_t constraints C_y\n']);
+                '    Try to increase y_t State Constraints\n']);
+        disp('x_cur:');
+        disp(x_cur);
+
         v = v_all;
         x_final = x_all;
         res = -1; % Error
