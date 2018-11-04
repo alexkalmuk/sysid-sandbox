@@ -13,7 +13,7 @@
 %   t0 - start time instant
 %
 % Return: Array of contols - v, and the last state x_final.
-function [v, x_final, res] = RMPC(cop_solver, C, C_u, C_y, Omega_AB,...
+function [v, res] = RMPC(cop_solver, C, C_u, C_y, Omega_AB,...
                             Omega_W, w, v_all, x_all, N, S, t0)
 
     A = [-C(1)   1;
@@ -36,14 +36,9 @@ function [v, x_final, res] = RMPC(cop_solver, C, C_u, C_y, Omega_AB,...
         disp(x_cur);
 
         v = v_all;
-        x_final = x_all;
         res = -1; % Error
         return;
     end
-
-    % Calculate next x_cur=x_{t+1} using obtained u(1)
-    z = A * x_cur' + B' * v + W(1, :)';
-    x_cur = z';
 
     figure(2);
     hold on;
@@ -60,6 +55,5 @@ function [v, x_final, res] = RMPC(cop_solver, C, C_u, C_y, Omega_AB,...
     hold off;
     
     v = horzcat(v_all, v);
-    x_final = horzcat(x_all, x_cur');
     res = 0; % Success
 end

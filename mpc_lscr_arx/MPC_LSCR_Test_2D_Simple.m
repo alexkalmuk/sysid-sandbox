@@ -137,7 +137,7 @@ for t=2:T
     %%%%%%%%%%%%%%%%%%% MPC step start %%%%%%%%%%%%%%%%%%%
 
     if generate_random_control == false
-        [v_mpc, x, res] = RMPC(str2func(cop_solver), C, C_u, C_y, Omega_AB, ...
+        [v_mpc, res] = RMPC(str2func(cop_solver), C, C_u, C_y, Omega_AB, ...
                             Omega_W, w, v_mpc, x, N_mpc, M_mpc, t);
         if res < 0
             fprintf('Error: RMPC failed\n');
